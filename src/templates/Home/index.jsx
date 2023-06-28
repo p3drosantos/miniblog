@@ -5,18 +5,16 @@ import { Component } from 'react';
 import { loadPosts } from '../../ultilities/load-posts';
 import Posts from '../../components/Posts/Posts';
 import { Button } from '../../components/Button/Button';
+import { TextInput } from '../../components/TextInput';
 
 class Home extends Component {
-  constructor(props){
-    super(props)
-
-    this.state = {
+    state = {
         posts : [],
         allPosts: [],
         page: 0,
         postsPerPage: 2,
+        searchValue: '',
       }
-  }
 
   async componentDidMount(){
     await this.loadPosts()
@@ -45,17 +43,58 @@ class Home extends Component {
     this.setState({posts, page : nextPage})
   }
 
+  handleChange = (e) => {
+    const {value} = e.target
+    this.setState({ searchValue:value })
+  }
+
+
 
   render() {
-    const { posts } = this.state
+    const { posts, page, postsPerPage, allPosts, searchValue } = this.state
+    const noMorePosts = page + postsPerPage >= allPosts.length
+
+    const filteredPosts = !!searchValue ? 
+    allPosts.filter(post => {
+      return post.title.toLowerCase().includes(searchValue.toLowerCase())
+    })
+    : 
+    posts
 
     return (
       <section className='container'>
-        <Posts posts={posts}/>
-        <Button
-        texto='Load more posts'
-        onClick={this.loadMorePosts}
-        />
+        <div className="search-container">
+          {!!searchValue && (
+            <h1>Pesquisa: {searchValue}</h1>
+          )}
+
+          <TextInput
+            searchValue={searchValue}
+            handleChange={this.handleChange}
+          />
+
+        </div>
+
+        {filteredPosts.length > 0 && (
+          <Posts posts={filteredPosts}/>
+        )}
+        {filteredPosts.length === 0 && (
+          <p>Não há posts :/</p>
+        )}
+
+        <div className="button-container">
+          {!searchValue && (
+          
+            <Button
+            disabled={noMorePosts}
+            texto='Load more posts'
+            onClick={this.loadMorePosts}
+            />  
+  
+          )}
+
+
+        </div>
       </section>
     );
   }
